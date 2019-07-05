@@ -1,6 +1,7 @@
 module.exports = {
     token : '837589296:AAEIvsMmiH94_eZhy1_t3I3my2cvjOsu3iI',
     db_url : 'mongodb://root:VyD4h5LcmaYfpPCc69muIuFy@s7.liara.ir:30770/mrbotdbv2',
+    db_c : 'test',
     keys : {
         openfacts: '📜 فاکتور های باز',
         monthlyReport: '🌙 گزارش ماهانه',

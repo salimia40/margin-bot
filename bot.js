@@ -43,18 +43,21 @@ module.exports = async (token) => {
 
     // commands
     bot.start((ctx, next) => {
-            if (ctx.user.stage == 'justJoined') {
-                ctx.reply('به ربات طلای آبشده خوش آمدید')
-                next()
-            } else if (ctx.user.stage != 'completed') {
-                next()
-            } else {
-                ctx.reply('دستور مورد نظر خود را انتخاب کنید:', Markup.keyboard([
-                    [keys.openfacts, keys.monthlyReport],
-                    [keys.postSettleReport, keys.semiSettle],
-                    [keys.packInv, keys.changeInv],
-                    [keys.userInfo, keys.contact]
-                ]).resize().extra())
+            if (helpers.isPrivate(ctx)) {
+
+                if (ctx.user.stage == 'justJoined') {
+                    ctx.reply('به ربات طلای آبشده خوش آمدید')
+                    next()
+                } else if (ctx.user.stage != 'completed') {
+                    next()
+                } else {
+                    ctx.reply('دستور مورد نظر خود را انتخاب کنید:', Markup.keyboard([
+                        [keys.openfacts, keys.monthlyReport],
+                        [keys.postSettleReport, keys.semiSettle],
+                        [keys.packInv, keys.changeInv],
+                        [keys.userInfo, keys.contact]
+                    ]).resize().extra())
+                }
             }
         },
         // signup scene
@@ -196,12 +199,12 @@ module.exports = async (token) => {
 
         let final = totalProfit - totalCommition
         let ft = ''
-        if(final < 0) {
+        if (final < 0) {
             ft = 'ضرر'
             final = Math.abs(final)
         } else
             ft = 'سود'
-        
+
 
         let msg = `
         👤 معامله گر گرامی ${user.name}
@@ -232,7 +235,7 @@ module.exports = async (token) => {
             price,
             bill
         } = ctx.values
-        if( sellerId == buyerId) return
+        if (sellerId == buyerId) return
         let sellerBill, buyerBill, cb, cs
         cb = await ctx.setting.getCode()
         cs = await ctx.setting.getCode()

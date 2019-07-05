@@ -1,6 +1,8 @@
 const mongoose = require("./_db");
 const Schema = mongoose.Schema;
 
+const config = require("../config");
+
 const settingSchema = new Schema({
     quotation: {
         type: Number,
@@ -24,7 +26,7 @@ const settingSchema = new Schema({
     }
 })
 
-const Setting = mongoose.model("Setting", settingSchema)
+const Setting = mongoose.model("Setting" + config.db_c, settingSchema)
 
 module.exports = (async () => {
     let s = await Setting.findOne()

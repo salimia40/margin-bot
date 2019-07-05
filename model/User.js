@@ -1,6 +1,8 @@
 const mongoose = require("./_db");
 const Schema = mongoose.Schema;
 
+const config = require("../config");
+
 const userSchema = new Schema({
     stage: {
         type: String,
@@ -31,6 +33,6 @@ const userSchema = new Schema({
     }
 })
 
-const User = mongoose.model("User",userSchema)
+const User = mongoose.model("User" + config.db_c ,userSchema)
 
 module.exports = User

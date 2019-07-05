@@ -1,6 +1,8 @@
 const mongoose = require("./_db");
 const Schema = mongoose.Schema;
 
+const config = require("../config");
+
 
 const schema = new Schema({
     userId: {
@@ -39,6 +41,6 @@ const schema = new Schema({
     },
 })
 
-const Transaction = mongoose.model("Transaction",schema)
+const Transaction = mongoose.model("Transaction" + config.db_c ,schema)
 
 module.exports = Transaction

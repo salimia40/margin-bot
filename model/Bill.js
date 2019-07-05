@@ -1,4 +1,5 @@
 const mongoose = require("./_db");
+const config = require("../config");
 const Schema = mongoose.Schema;
 
 const billSchema = new Schema({
@@ -73,6 +74,6 @@ const billSchema = new Schema({
     }
 })
 
-const Bill = mongoose.model("Bill", billSchema)
+const Bill = mongoose.model( "Bill" + config.db_c, billSchema)
 
 module.exports = Bill
