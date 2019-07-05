@@ -1,4 +1,5 @@
 const config = require('../config')
+const helpers = require('../helpers')
 const Scene = require('telegraf/scenes/base')
 const {
     leave
@@ -15,12 +16,12 @@ const inputHandler = async (ctx, next) => {
         case "nameAsked":
             user.name = ctx.message.text
             user = await user.save()
-            ctx.reply(`نام شما به :${user.name} تغییر کرد`)
+            await ctx.reply(`نام شما به :${user.name} تغییر کرد`)
             break
         case "phoneAsked":
             user.phone = ctx.message.text
             user = await user.save()
-            ctx.reply(`شماره تماس شما :${user.phone}`)
+            await ctx.reply(`شماره تماس شما :${user.phone}`)
             break
         case "bankNameAsked":
             if (user.bank == undefined) {
@@ -30,21 +31,21 @@ const inputHandler = async (ctx, next) => {
             } else {
                 user.bank.name = ctx.message.text
             }
-            ctx.reply(`بانک شما به :${user.bank.name}\n `)
-            ctx.reply("لطفا شماره حساب خود را وارد کنید")
+            await ctx.reply(`بانک شما به :${user.bank.name}\n `)
+            await ctx.reply("لطفا شماره حساب خود را وارد کنید")
             user.stage = 'bankNumberAsked'
             user = await user.save()
             break
         case "bankNumberAsked":
             user.bank.number = ctx.message.text
-            ctx.reply(`شماره حساب شما:${user.bank.number}`)
+            await ctx.reply(`شماره حساب شما:${user.bank.number}`)
             user = await user.save()
             break
 
     }
     /**ask for eccount information */
     if (user.name == undefined) {
-        ctx.reply("لطفا نام خود را وارد کنید")
+        ctx.reply("لطفا نام کامل خود را وارد کنید")
         user.stage = 'nameAsked'
         await user.save()
     } else if (user.phone == undefined) {
@@ -58,9 +59,10 @@ const inputHandler = async (ctx, next) => {
             await user.save()
         }
     } else if (!user.acceptedTerms) {
-        ctx.reply(config.contract[0])
-        ctx.reply(config.contract[1])
-        ctx.reply("آیا با شرایط و قوانین ما موافقط دارید؟", {
+        await ctx.reply(config.contract[0])
+        await ctx.reply(config.contract[1])
+        await ctx.reply(config.contract[2])
+        await ctx.reply("آیا با شرایط و قوانین ما موافقط دارید؟", {
             reply_markup: {
                 inline_keyboard: [
                     [{
@@ -76,7 +78,7 @@ const inputHandler = async (ctx, next) => {
         })
     } else {
         /**user eccount is complete */
-        ctx.reply(await userToString(ctx, user))
+        await ctx.reply(await helpers.userToString(ctx))
         user.stage = 'completed'
         await user.save()
         next()
