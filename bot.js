@@ -202,6 +202,10 @@ module.exports = async (token) => {
         if (bill.isSell) avg = await helpers.sellAvg(bill.userId)
         else avg = await helpers.buyAvg(bill.userId)
 
+        if(isNaN(avg)) {
+            avg = bill.price
+        }
+
         let final = totalProfit - totalCommition
         let ft = ''
         if (final < 0) {
