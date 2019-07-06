@@ -98,6 +98,9 @@ module.exports = async (token) => {
     bot.hears(keys.reqCash, hears.reqCash)
 
     bot.hears('ن', async (ctx) => {
+        if(ctx.user.role == config.role_owner) {
+            ctx.deleteMessage()
+        }
         if (helpers.isGroup && helpers.isReply) {
             let bill = await Bill.findOne({
                 messageId: ctx.message.reply_to_message.message_id
@@ -446,6 +449,9 @@ module.exports = async (token) => {
         let mcb = await helpers.maxCanBuy(ctx)
         let mt = await helpers.matchTolerance(ctx, price)
         let bc = await ctx.setting.getBaseCharge()
+        if(ctx.user.role == config.role_owner) {
+            ctx.deleteMessage()
+        }
         if (ctx.user.charge < bc) {
             return ctx.telegram.sendMessage(ctx.message.from.id, 'موجودی حساب شما کمتر از وجه تضمین است')
         }
