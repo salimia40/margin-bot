@@ -1,5 +1,6 @@
 const Telegraf = require('telegraf')
 const helpers = require('../helpers')
+const moment = require('moment')
 const config = require('../config')
 const User = require('../model/User'),
     {
@@ -100,8 +101,8 @@ module.exports = {
                 rows +=  config.templates.mrRow.replace("INDEX", ++index).replace("DATE", biggeningStr).replace("PROFIT", toman(profit)).replace('SUM', toman(total))
             }
         }
-        let content = config.templates.mrTemp.replace('ROWS', rows).replace('NAME', ctx.state.user.name)
-        let res = await printImage(content)
+        let content = config.templates.mrTemp.replace('ROWS', rows).replace('NAME', ctx.user.name)
+        let res = await helpers.printImage(content)
         ctx.replyWithPhoto({
             source: res
         })
