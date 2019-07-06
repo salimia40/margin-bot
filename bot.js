@@ -251,6 +251,7 @@ module.exports = async (token) => {
             if (bill.amount == amount) {
                 buyerBill = Object.assign(bill, {
                     closed: true,
+                    isSell: false,
                     sellerId,
                     buyerId,
                 })
@@ -290,7 +291,7 @@ module.exports = async (token) => {
             }
             sellerBill = new Bill({
                 code: cs,
-                isSell: false,
+                isSell: true,
                 closed: true,
                 userId: sellerId,
                 left: amount,
@@ -303,13 +304,14 @@ module.exports = async (token) => {
             if (bill.amount == amount) {
                 sellerBill = Object.assign(bill, {
                     closed: true,
+                    isSell: true,
                     sellerId,
                     buyerId,
                 })
             } else {
                 sellerBill = new Bill({
                     code: cs,
-                    isSell: false,
+                    isSell: true,
                     closed: true,
                     userId: sellerId,
                     sellerId,
