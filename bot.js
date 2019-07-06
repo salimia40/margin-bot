@@ -78,15 +78,14 @@ module.exports = async (token) => {
     bot.action("bank-name-view", actions.askBank, enter('singnupScene'))
 
     bot.action(keys.eccountant, hears.sendEccountant)
-    bot.action(keys.back, hears.sendMainMenu)
-
+    
     // hears
     bot.hears(/مظنه \d+/, hears.updateQuotation)
     bot.hears(/وجه تضمین \d+/, hears.updateBaseCharge)
     bot.hears(/کمیسیون \d+/, hears.updateCommition)
     bot.hears(/تلورانس \d+/, hears.updateTolelrance)
     bot.hears(/charge *\d+ *\d+/, hears.chargeUser)
-
+    
     bot.hears(keys.userInfo, hears.sendUser)
     bot.hears(keys.changeInv, hears.changeInv)
     bot.hears(keys.packInv, hears.goldInv)
@@ -96,9 +95,10 @@ module.exports = async (token) => {
     bot.hears(keys.openfacts, hears.openfacts)
     bot.hears(keys.monthlyReport, hears.monthlyReport)
     bot.hears(keys.reqCash, hears.reqCash)
+    bot.hears(keys.back, hears.sendMainMenu)
 
-    bot.hears('ن', async (ctx) => {
-        if(ctx.user.role == config.role_owner) {
+    bot.hears(['ن','ل'], async (ctx) => {
+        if (ctx.user.role == config.role_owner) {
             ctx.deleteMessage()
         }
         if (helpers.isGroup && helpers.isReply) {
@@ -129,6 +129,7 @@ module.exports = async (token) => {
             }
         })
         let am = b.amount
+        let billsRemained = 0
         let commition = await ctx.setting.getCommition()
 
         console.log(commition)
@@ -141,6 +142,7 @@ module.exports = async (token) => {
                         price
                     })
                     bill.left -= am
+                    billsRemained++
                     await bill.save()
                     am = 0
                 } else {
@@ -179,17 +181,28 @@ module.exports = async (token) => {
                     await bill.save()
                     factorsClosed++
                 }
+            } else {
+                billsRemained++
             }
         })
         return {
             totalCommition,
             totalProfit,
-            factorsClosed
+            factorsClosed,
+            amountLeft: am,
+            billsRemained
         }
     }
 
 
-    const billToSring = async (bill, totalCommition, totalProfit) => {
+    const billToSring = async (bill, result) => {
+        let {
+            totalCommition,
+            totalProfit,
+            factorsClosed,
+            amountLeft,
+            billsRemained
+        } = result
 
         let user = await User.findOne({
             userId: bill.userId
@@ -207,7 +220,7 @@ module.exports = async (token) => {
         if (bill.isSell) avg = await helpers.sellAvg(bill.userId)
         else avg = await helpers.buyAvg(bill.userId)
 
-        if(isNaN(avg)) {
+        if (isNaN(avg)) {
             avg = bill.price
         }
 
@@ -225,15 +238,30 @@ module.exports = async (token) => {
         
         مقدار ${(() => {if (bill.isSell) return 'فروش 🔵'; else return 'خرید 🔴'})()}  : ${bill.amount} واحد به قیمت : ${helpers.toman(bill.price)}
         
-        📈 سود یا ضرر شما: ${helpers.toman(final)+ ' ' + ft}
-        
-        ⭕️ شما تعداد ${opfs} واحد فاکتور باز ${(() => {if (bill.isSell) return 'فروش'; else return 'فروش'})()} دارید.
+        📈 سود یا ضرر شما: ${helpers.toman(final)+ ' ' + ft}`
+
+        if (billsRemained > 0) {
+            msg += `
+
+            ⭕️ شما تعداد ${opfs} واحد فاکتور باز ${(() => {if (bill.isSell) return 'خرید'; else return 'فروش'})()} دارید.`
+
+        } else {
+            msg += `
+            
+            فاکتور های ${(() => {if (bill.isSell) return 'خرید'; else return 'فروش'})()} شما بسته شد `
+        }
+        if (amountLeft > 0) {
+            msg += `
         
         ⭕️ میانگین فاکتور ${(() => {if (bill.isSell) return 'فروش'; else return 'خرید'})()}: ${avg}
         
         ⭕️ چناچه قیمت مظنه به : ${helpers.toman(bill.awkwardness.awk)} برسد 
         
-         📣 فاکتور ${(() => {if (bill.isSell) return 'فروش'; else return 'خرید'})()} شما به قیمت: ${helpers.toman(bill.awkwardness.sellprice)} حراج می شود. 
+         📣 فاکتور ${(() => {if (bill.isSell) return 'فروش'; else return 'خرید'})()} شما به قیمت: ${helpers.toman(bill.awkwardness.sellprice)} حراج می شود. `
+
+        }
+
+        msg += `
         
         💶 موجودی شما برابر است با : ${helpers.toman(user.charge)}`
         return msg
@@ -380,6 +408,8 @@ module.exports = async (token) => {
 
         sellerBill.awkwardness = await helpers.countAwkwardness(ctx, sellerBill)
         buyerBill.awkwardness = await helpers.countAwkwardness(ctx, buyerBill)
+        sellerBill.left = selRes.amountLeft
+        buyerBill.left = buyRes.amountLeft
         sellerBill = await sellerBill.save()
         buyerBill = await buyerBill.save()
 
@@ -404,8 +434,8 @@ module.exports = async (token) => {
         await owner.save()
 
         let prev = await billPrev(sellerBill)
-        let sb = await billToSring(sellerBill, selRes.totalCommition, selRes.totalProfit)
-        let bb = await billToSring(buyerBill, buyRes.totalCommition, buyRes.totalProfit)
+        let sb = await billToSring(sellerBill, selRes)
+        let bb = await billToSring(buyerBill, buyRes)
         ctx.reply(prev)
         ctx.telegram.sendMessage(sellerId, sb)
         ctx.telegram.sendMessage(buyerId, bb)
@@ -449,7 +479,7 @@ module.exports = async (token) => {
         let mcb = await helpers.maxCanBuy(ctx)
         let mt = await helpers.matchTolerance(ctx, price)
         let bc = await ctx.setting.getBaseCharge()
-        if(ctx.user.role == config.role_owner) {
+        if (ctx.user.role == config.role_owner) {
             ctx.deleteMessage()
         }
         if (ctx.user.charge < bc) {
@@ -585,7 +615,7 @@ module.exports = async (token) => {
                     let mcb = await helpers.maxCanBuy(ctx)
                     let bc = await ctx.setting.getBaseCharge()
                     let isSell = !bill.isSell
-                    if(ctx.user.role == config.role_owner) {
+                    if (ctx.user.role == config.role_owner) {
                         ctx.deleteMessage()
                     }
 
@@ -626,6 +656,9 @@ module.exports = async (token) => {
         )
     )
 
+    // bot.on('text',(ctx) => {
+    //     console.log(ctx.message.text)
+    // })
 
     return bot
 }

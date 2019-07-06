@@ -46,7 +46,7 @@ const inputHandler = async (ctx, next) => {
     }
     /**ask for eccount information */
     if (user.name == undefined) {
-        ctx.reply("لطفا نام کامل خود را وارد کنید")
+        ctx.reply("لطفا نام و نام خانوادگی خود را وارد کنید")
         user.stage = 'nameAsked'
         await user.save()
     } else if (user.phone == undefined) {

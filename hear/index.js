@@ -185,7 +185,8 @@ module.exports = {
 
     },
     sendMainMenu: (ctx) => {
-        ctx.reply('دستور مورد نظر خود را انتخاب کنید:', Markup.keyboard([
+        console.log('called')
+        ctx.reply('منوی اصلی:', Markup.keyboard([
             [keys.openfacts, keys.monthlyReport],
             [keys.postSettleReport, keys.semiSettle],
             [keys.packInv, keys.changeInv],
