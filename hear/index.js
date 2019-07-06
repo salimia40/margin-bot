@@ -1,9 +1,10 @@
 const Telegraf = require('telegraf')
 const helpers = require('../helpers')
+const config = require('../config')
 const User = require('../model/User'),
     {
         keys
-    } = require('../config'),
+    } = config,
     Bill = require('../model/Bill'),
     Markup = require('telegraf/markup')
 
@@ -60,6 +61,51 @@ module.exports = {
             ctx.deleteMessage()
         }
     ),
+    openfacts: async (ctx) => {
+        ctx.reply('درخواست با موفقیت ارسال شد لطفا منتظر بمانید')
+        let opfs = await Bill.find({
+            userId: ctx.user.userId,
+            closed: true,
+            left: {$gt: 0}
+        })
+        let p = await helpers.opfImage(ctx, opfs)
+        ctx.replyWithPhoto({
+            source: p
+        })
+    },
+    monthlyReport: async (ctx) => {
+        ctx.reply('درخواست با موفقیت ارسال شد لطفا منتظر بمانید')
+        let rows = ''
+        let index = 0
+        for (var z = 30; z >= 0; z--) {
+            let biggeningStr = moment().startOf('day').subtract(z, 'days').format('l')
+            let biggening = moment().startOf('day').subtract(z, 'days').unix() * 1000
+            let ending = moment().endOf('day').subtract(z, 'days').unix() * 1000
+            let bills = await Bill.find({
+                date: {
+                    $gt: biggening,
+                    $lt: ending
+                }, closed: true,
+                left: 0,
+                userId: ctx.user.userId
+            })
+            if (bills.length > 0) {
+                let total = 0,
+                    profit = 0
+                for (let x = 0; x < bills.length; x++) {
+                    profit += bills[x].profit
+                    total += bills[x].profit
+                    total -= bills[x].commition
+                }
+                rows +=  config.templates.mrRow.replace("INDEX", ++index).replace("DATE", biggeningStr).replace("PROFIT", toman(profit)).replace('SUM', toman(total))
+            }
+        }
+        let content = config.templates.mrTemp.replace('ROWS', rows).replace('NAME', ctx.state.user.name)
+        let res = await printImage(content)
+        ctx.replyWithPhoto({
+            source: res
+        })
+    },
     sendUser: async (ctx) => {
         let msg = await helpers.userToString(ctx)
         ctx.reply(msg, {

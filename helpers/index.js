@@ -27,6 +27,48 @@ const printImage = async (content) => {
 }
 
 
+const options = {
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric'
+};
+const formatter = new Intl.DateTimeFormat([], options);
+
+const opfImage = async (ctx, opfs) => {
+    let rows = ''
+    let i = 0
+    for (var z = 0; z < opfs.length; ++z) {
+        let bill = opfs[z]
+        let style, deal
+        if (bill.isSell) {
+            style = 'bg-danger'
+            deal = 'فروش'
+
+        } else {
+            style = 'bg-primary'
+            deal = 'خرید'
+
+        }
+
+        rows += config.templates.opfRow.replace("INDEX", ++i)
+            .replace("DEAL-STYLE", style)
+            .replace("DEAL", deal)
+            .replace('AMOUNT', bill.left)
+            .replace('PRICE', toman(bill.price))
+            .replace('CODE', bill.code)
+
+    }
+
+    let content = config.templates.opfTemp.replace('ROWS', rows)
+        .replace('NAME', ctx.user.name)
+        .replace('DATE', formatter.format(Date.now()))
+
+    let res = await printImage(content)
+    return res
+
+}
+
+
 const toman = (v) => {
         if (v == undefined) v = 0
         return formatNumber(Math.round(v * 10) * 100)
@@ -39,6 +81,7 @@ module.exports = {
     asyncForEach,
     printImage,
     formatNumber,
+    opfImage,
     toman,
     maxCanBuy: async (ctx) => {
         let bc = await ctx.setting.getBaseCharge()

@@ -93,6 +93,8 @@ module.exports = async (token) => {
     bot.hears(keys.cardInfo, hears.cardInfo)
     bot.hears(keys.summitResipt, enter('summitFish'))
     bot.hears(keys.contact, hears.contact)
+    bot.hears(keys.openfacts, hears.openfacts)
+    bot.hears(keys.monthlyReport, hears.monthlyReport)
     bot.hears(keys.reqCash, hears.reqCash)
 
     bot.hears('ن', async (ctx) => {
@@ -577,6 +579,9 @@ module.exports = async (token) => {
                     let mcb = await helpers.maxCanBuy(ctx)
                     let bc = await ctx.setting.getBaseCharge()
                     let isSell = !bill.isSell
+                    if(ctx.user.role == config.role_owner) {
+                        ctx.deleteMessage()
+                    }
 
                     if (ctx.user.charge < bc) {
                         return ctx.telegram.sendMessage(ctx.message.from.id, 'موجودی حساب شما کمتر از وجه تضمین است')
@@ -608,6 +613,7 @@ module.exports = async (token) => {
                         price,
                         bill
                     }
+
                     makeDeal(ctx)
                 }, command.start
             ), command.start
