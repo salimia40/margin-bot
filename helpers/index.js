@@ -88,13 +88,31 @@ module.exports = {
         let bc = await ctx.setting.getBaseCharge()
         let mx = Math.round(ctx.user.charge / bc)
         let bills = await Bill.find({
-            closed: false,
+            closed: true,
             userId: ctx.user.userId,
-            isSell: false
+            isSell: false,
+            left : {$gt: 0}
         })
         let am = 0
         for (var i = 0; i < bills.length; i++) {
-            am += bills[i].amount
+            am += bills[i].left
+        }
+        mx -= am
+        if (mx < 0) mx = 0
+        return mx
+    },
+    maxCanSell : async (ctx) => {
+        let bc = await ctx.setting.getBaseCharge()
+        let mx = Math.round(ctx.user.charge / bc)
+        let bills = await Bill.find({
+            closed: true,
+            userId: ctx.user.userId,
+            isSell: true,
+            left : {$gt: 0}
+        })
+        let am = 0
+        for (var i = 0; i < bills.length; i++) {
+            am += bills[i].left
         }
         mx -= am
         if (mx < 0) mx = 0

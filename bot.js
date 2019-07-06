@@ -475,7 +475,7 @@ module.exports = async (token) => {
 
     bot.hears(/\d+\s*(ف|خ)\s*\d+/, async (ctx, next) => {
         var [amount, isSell, price] = helpers.parseLafz(ctx.match[0])
-        let mx = await helpers.maxGold(ctx)
+        let mx = await helpers.maxCanSell(ctx)
         let mcb = await helpers.maxCanBuy(ctx)
         let mt = await helpers.matchTolerance(ctx, price)
         let bc = await ctx.setting.getBaseCharge()
