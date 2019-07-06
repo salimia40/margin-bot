@@ -1,4 +1,5 @@
 const config = require('../config')
+const {keys} = config
 const helpers = require('../helpers')
 const Scene = require('telegraf/scenes/base')
 const {
@@ -90,7 +91,13 @@ singnupScene.action("terms-accept", async (ctx,next) => {
     ctx.user.acceptedTerms = true
     ctx.user.save()
     ctx.deleteMessage()
-    ctx.reply("شما با شرایط گروه موافقط کردید")
+    ctx.reply("شما با شرایط گروه موافقط کردید",Markup.keyboard([
+        [keys.openfacts, keys.monthlyReport],
+        [keys.postSettleReport, keys.semiSettle],
+        [keys.packInv, keys.changeInv],
+        [keys.userInfo, keys.contact]
+    ]).resize().extra())
+    
     next()
 },leave())
 

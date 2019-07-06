@@ -46,7 +46,7 @@ module.exports = async (token) => {
             if (helpers.isPrivate(ctx)) {
 
                 if (ctx.user.stage == 'justJoined') {
-                    ctx.reply('به ربات طلای آبشده خوش آمدید')
+                    ctx.reply('به ربات يلای آبشده خوش آمدید')
                     next()
                 } else if (ctx.user.stage != 'completed') {
                     next()
@@ -78,6 +78,7 @@ module.exports = async (token) => {
     bot.action("bank-name-view", actions.askBank, enter('singnupScene'))
 
     bot.action(keys.eccountant, hears.sendEccountant)
+    bot.action(keys.back, hears.sendMainMenu)
 
     // hears
     bot.hears(/مظنه \d+/, hears.updateQuotation)
@@ -112,6 +113,7 @@ module.exports = async (token) => {
 
     const closeDeals = async (ctx, b, price) => {
         let totalProfit = 0
+        let factorsClosed = 0
         let totalCommition = 0
         let bills = await Bill.find({
             userId: b.userId,
@@ -133,6 +135,7 @@ module.exports = async (token) => {
                         am,
                         price
                     })
+                    bill.left -= am
                     await bill.save()
                     am = 0
                 } else {
@@ -169,12 +172,14 @@ module.exports = async (token) => {
                     totalCommition += bill.commition
                     totalProfit += bill.profit
                     await bill.save()
+                    factorsClosed++
                 }
             }
         })
         return {
             totalCommition,
-            totalProfit
+            totalProfit,
+            factorsClosed
         }
     }
 
@@ -213,7 +218,7 @@ module.exports = async (token) => {
         
         📈 سود یا ضرر شما: ${helpers.toman(final)+ ' ' + ft}
         
-        ⭕️ شما تعداد ${opfs} واحد فاکتور باز ${(() => {if (bill.isSell) return 'فروش'; else return 'خرید'})()} دارید.
+        ⭕️ شما تعداد ${opfs} واحد فاکتور باز ${(() => {if (bill.isSell) return 'فروش'; else return 'فروش'})()} دارید.
         
         ⭕️ میانگین فاکتور ${(() => {if (bill.isSell) return 'فروش'; else return 'خرید'})()}: ${avg}
         
@@ -239,6 +244,9 @@ module.exports = async (token) => {
         let sellerBill, buyerBill, cb, cs
         cb = await ctx.setting.getCode()
         cs = await ctx.setting.getCode()
+
+        ctx.telegram.deleteMessage(ctx.chat.id, bill.messageId)
+
         if (isSell) {
             if (bill.amount == amount) {
                 buyerBill = Object.assign(bill, {
@@ -247,6 +255,7 @@ module.exports = async (token) => {
                     buyerId,
                 })
             } else {
+
                 buyerBill = new Bill({
                     code: cb,
                     isSell: false,
@@ -257,7 +266,27 @@ module.exports = async (token) => {
                     amount: amount,
                     price: price
                 })
+
                 /**update bill */
+                bill.amount -= amount
+                let z
+                let emo
+                if (isSell) {
+                    emo = '🔴'
+                    z = 'ف'
+
+                } else {
+                    emo = '🔵'
+                    z = 'خ'
+                }
+                bill = await bill.save()
+                let usr = await User.findOne({
+                    userId: bill.userId
+                })
+                let msg = emo + ' ' + bill.amount + ' ' + z + ' ' + price + ' ' + usr.name
+                ctx.telegram.editMessageText(ctx.chat.id, bill.messageId, null, msg)
+
+
             }
             sellerBill = new Bill({
                 code: cs,
@@ -289,6 +318,24 @@ module.exports = async (token) => {
                     price: price
                 })
                 /**update bill */
+                bill.amount -= amount
+                let z
+                let emo
+                if (isSell) {
+                    emo = '🔴'
+                    z = 'ف'
+
+                } else {
+                    emo = '🔵'
+                    z = 'خ'
+                }
+                bill = await bill.save()
+                let usr = await User.findOne({
+                    userId: bill.userId
+                })
+                let msg = emo + ' ' + bill.amount + ' ' + z + ' ' + price + ' ' + usr.name
+                ctx.telegram.editMessageText(ctx.chat.id, bill.messageId, null, msg)
+
             }
             buyerBill = new Bill({
                 code: cb,
@@ -302,6 +349,9 @@ module.exports = async (token) => {
                 price: price
             })
         }
+
+
+
 
         /***
          * 
@@ -332,13 +382,14 @@ module.exports = async (token) => {
         buser.charge -= buyRes.totalCommition
         suser.charge += selRes.totalProfit
         suser.charge -= selRes.totalCommition
+
+        await buser.save()
+        await suser.save()
+
         let owner = await User.findOne({
             role: config.role_owner
         })
         owner.charge += buyRes.totalCommition + selRes.totalCommition
-
-        await buser.save()
-        await suser.save()
         await owner.save()
 
         let prev = await billPrev(sellerBill)
@@ -490,9 +541,9 @@ module.exports = async (token) => {
                 if (bill == undefined) {
                     console.log('hmmmm')
                 } else if (!bill.closed && !bill.expired) {
-                    ctx.telegram.editMessageText(ctx.chat.id, res.message_id, null, msg + '  منقضی شد')
+                    ctx.telegram.editMessageText(ctx.chat.id, bill.messageId, null, msg + '  منقضی شد')
                     setTimeout(() => {
-                        ctx.telegram.deleteMessage(ctx.chat.id, res.message_id)
+                        ctx.telegram.deleteMessage(ctx.chat.id, bill.messageId)
                     }, 20000)
                     Bill.findByIdAndDelete(bill._id).exec()
                 }

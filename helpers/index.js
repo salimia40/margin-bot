@@ -103,7 +103,6 @@ module.exports = {
         let mgs = await Bill.find({
             userId,
             isSell: false,
-            closed: false,
             left: {$gt: 0}
         })
 
@@ -123,7 +122,6 @@ module.exports = {
         let mgs = await Bill.find({
             userId,
             isSell: true,
-            closed: false,
             left: {$gt: 0}
         })
 
