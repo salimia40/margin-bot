@@ -74,6 +74,6 @@ const billSchema = new Schema({
     }
 })
 
-const Bill = mongoose.model( "Bill" + config.db_c, billSchema)
+const Bill = mongoose.model( "Bill", billSchema)
 
 module.exports = Bill

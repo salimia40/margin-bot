@@ -41,6 +41,6 @@ const schema = new Schema({
     },
 })
 
-const Transaction = mongoose.model("Transaction" + config.db_c ,schema)
+const Transaction = mongoose.model("Transaction",schema)
 
 module.exports = Transaction

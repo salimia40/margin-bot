@@ -1,0 +1,13 @@
+version: '3'
+services:
+  bot:
+    container_name: margin-bot
+    restart: always
+    build: .
+    links:
+      - db
+  db:
+    container_name: mongo
+    image: mongo
+    ports:
+      - '27017:27017'

@@ -26,7 +26,7 @@ const settingSchema = new Schema({
     }
 })
 
-const Setting = mongoose.model("Setting" + config.db_c, settingSchema)
+const Setting = mongoose.model("Setting" , settingSchema)
 
 module.exports = (async () => {
     let s = await Setting.findOne()

@@ -33,6 +33,6 @@ const userSchema = new Schema({
     }
 })
 
-const User = mongoose.model("User" + config.db_c ,userSchema)
+const User = mongoose.model("User" ,userSchema)
 
 module.exports = User
