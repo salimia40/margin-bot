@@ -78,14 +78,14 @@ module.exports = async (token) => {
     bot.action("bank-name-view", actions.askBank, enter('singnupScene'))
 
     bot.action(keys.eccountant, hears.sendEccountant)
-    
+
     // hears
     bot.hears(/مظنه \d+/, hears.updateQuotation)
     bot.hears(/وجه تضمین \d+/, hears.updateBaseCharge)
     bot.hears(/کمیسیون \d+/, hears.updateCommition)
     bot.hears(/تلورانس \d+/, hears.updateTolelrance)
     bot.hears(/charge *\d+ *\d+/, hears.chargeUser)
-    
+
     bot.hears(keys.userInfo, hears.sendUser)
     bot.hears(keys.changeInv, hears.changeInv)
     bot.hears(keys.packInv, hears.goldInv)
@@ -97,7 +97,7 @@ module.exports = async (token) => {
     bot.hears(keys.reqCash, hears.reqCash)
     bot.hears(keys.back, hears.sendMainMenu)
 
-    bot.hears(['ن','ل'], async (ctx) => {
+    bot.hears(['ن', 'ل'], async (ctx) => {
         if (ctx.user.role == config.role_owner) {
             ctx.deleteMessage()
         }
@@ -208,12 +208,20 @@ module.exports = async (token) => {
             userId: bill.userId
         })
 
-        let opfs = await Bill.countDocuments({
+        let sopfs = await Bill.countDocuments({
             userId: bill.userId,
             left: {
                 $gt: 0
             },
-            isSell: !bill.isSell
+            isSell: true
+        })
+
+        let bopfs = await Bill.countDocuments({
+            userId: bill.userId,
+            left: {
+                $gt: 0
+            },
+            isSell: false
         })
 
         let avg = 0
@@ -246,14 +254,25 @@ module.exports = async (token) => {
             ⭕️ شما تعداد ${opfs} واحد فاکتور باز ${(() => {if (bill.isSell) return 'خرید'; else return 'فروش'})()} دارید.`
 
         } else {
-            msg += `
-            
-            فاکتور های ${(() => {if (bill.isSell) return 'خرید'; else return 'فروش'})()} شما بسته شد `
+            let op
+            if (bill.isSell) {
+                op = sopfs
+            } else op = bopfs
+            if (op.length > 0) {
+                msg += `
+
+            ⭕️ شما تعداد ${opfs} واحد فاکتور باز ${(() => {if (bill.isSell) return 'فروش'; else return 'خرید'})()} دارید.`
+            } else {
+
+                msg += `
+                
+                فاکتور های ${(() => {if (bill.isSell) return 'خرید'; else return 'فروش'})()} شما بسته شد `
+            }
         }
         if (amountLeft > 0) {
             msg += `
         
-        ⭕️ میانگین فاکتور ${(() => {if (bill.isSell) return 'فروش'; else return 'خرید'})()}: ${avg}
+        ⭕️ میانگین فاکتور ${(() => {if (bill.isSell) return 'فروش'; else return 'خرید'})()}: ${helpers.toman(avg)}
         
         ⭕️ چناچه قیمت مظنه به : ${helpers.toman(bill.awkwardness.awk)} برسد 
         
