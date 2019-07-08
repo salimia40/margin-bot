@@ -98,7 +98,7 @@ module.exports = {
                     total += bills[x].profit
                     total -= bills[x].commition
                 }
-                rows +=  config.templates.mrRow.replace("INDEX", ++index).replace("DATE", biggeningStr).replace("PROFIT", toman(profit)).replace('SUM', toman(total))
+                rows +=  config.templates.mrRow.replace("INDEX", ++index).replace("DATE", biggeningStr).replace("PROFIT", helpers.toman(profit)).replace('SUM', helpers.toman(total))
             }
         }
         let content = config.templates.mrTemp.replace('ROWS', rows).replace('NAME', ctx.user.name)

@@ -120,6 +120,7 @@ module.exports = async (token) => {
         let totalProfit = 0
         let factorsClosed = 0
         let totalCommition = 0
+
         let bills = await Bill.find({
             userId: b.userId,
             closed: true,
@@ -156,11 +157,14 @@ module.exports = async (token) => {
                     bill.left = 0
                     bill = await bill.save()
 
-                    let sum = 0
+                    /**
+                     * using let is absulutly furbidden
+                     */
+                    var sum = 0
                     await helpers.asyncForEach(bill.sells, (sell) => {
                         console.log(sell)
                         console.log(bill.price)
-                        let x
+                        var x
                         console.log(x)
                         console.log(bill.isSell)
                         if (bill.isSell) {
@@ -171,6 +175,7 @@ module.exports = async (token) => {
                         console.log(x)
                         x *= sell.amount
                         console.log(x)
+                        console.log(sum)
                         sum += x
                         console.log(sum)
                     })
@@ -187,7 +192,7 @@ module.exports = async (token) => {
                     factorsClosed++
                 }
             } else {
-                billsRemained++
+                billsRemained += bill.left
             }
         })
         return {
@@ -199,8 +204,188 @@ module.exports = async (token) => {
         }
     }
 
+    const sellerBillToString = async (bill, result) => {
+        let {
+            totalCommition,
+            totalProfit,
+            factorsClosed,
+            amountLeft,
+            billsRemained
+        } = result
+
+
+        let user = await User.findOne({
+            userId: bill.userId
+        })
+
+
+        let sopfs = await Bill.countDocuments({
+            userId: bill.userId,
+            left: {
+                $gt: 0
+            },
+            isSell: true
+        })
+
+        let bopfs = await Bill.countDocuments({
+            userId: bill.userId,
+            left: {
+                $gt: 0
+            },
+            isSell: false
+        })
+
+        let avg = await helpers.sellAvg(bill.userId)
+
+        let final = totalProfit - totalCommition
+        let ft = ''
+        if (final < 0) {
+            ft = 'ضرر'
+            final = Math.abs(final)
+        } else
+            ft = 'سود'
+
+        let msg = `
+            👤 معامله گر گرامی ${user.name}
+            
+            مقدار 🔴 فروش  : ${bill.amount} واحد به قیمت : ${helpers.toman(bill.price)}
+            
+            📈 سود یا ضرر شما: ${helpers.toman(final)+ ' ' + ft}`
+
+        let avgNeeded = false
+        let ops = 0
+        if (billsRemained > 0) {
+            bopfs.forEach(v => {
+                ops += v.left
+            })
+            msg += `
+                    ⭕️ شما تعداد ${ops} واحد فاکتور باز خرید دارید.`
+        } else if (bopfs.length > 0) {
+            sopfs.forEach(v => {
+                ops += v.left
+            })
+            msg += `
+                    ⭕️ شما تعداد ${ops} واحد فاکتور باز فروش دارید.`
+            avgNeeded = true
+        } else {
+            msg += `
+                    ⭕️ فاکتور های فروش شما بسته شد `
+        }
+        if (avgNeeded) {
+            msg += `
+            
+                ⭕️ میانگین فاکتور فروش: ${helpers.toman(avg)}
+                
+                ⭕️ چناچه قیمت مظنه به : ${helpers.toman(bill.awkwardness.awk)} برسد 
+                
+                 📣 فاکتور فروش شما به قیمت: ${helpers.toman(bill.awkwardness.sellprice)} حراج می شود. `
+        }
+
+        msg += `
+            
+            💶 موجودی شما برابر است با : ${helpers.toman(user.charge)}`
+        return msg
+
+
+
+    }
+
+
+
+    const buyerBillToString = async (bill, result) => {
+        let {
+            totalCommition,
+            totalProfit,
+            factorsClosed,
+            amountLeft,
+            billsRemained
+        } = result
+
+
+        let user = await User.findOne({
+            userId: bill.userId
+        })
+
+
+        let sopfs = await Bill.find({
+            userId: bill.userId,
+            left: {
+                $gt: 0
+            },
+            isSell: true
+        })
+
+        let bopfs = await Bill.find({
+            userId: bill.userId,
+            left: {
+                $gt: 0
+            },
+            isSell: false
+        })
+
+        let avg = await helpers.buyAvg(bill.userId)
+
+        let final = totalProfit - totalCommition
+        let ft = ''
+        if (final < 0) {
+            ft = 'ضرر'
+            final = Math.abs(final)
+        } else
+            ft = 'سود'
+
+
+        let msg = `
+            👤 معامله گر گرامی ${user.name}
+            
+            مقدار 🔵 خرید  : ${bill.amount} واحد به قیمت : ${helpers.toman(bill.price)}
+            
+            📈 سود یا ضرر شما: ${helpers.toman(final)+ ' ' + ft}`
+
+        let avgNeeded = false
+        let ops = 0
+        if (billsRemained > 0) {
+            sopfs.forEach(v => {
+                ops += v.left
+            })
+            msg += `
+                ⭕️ شما تعداد ${ops} واحد فاکتور باز فروش دارید.`
+        } else if (bopfs.length > 0) {
+            bopfs.forEach(v => {
+                ops += v.left
+            })
+            msg += `
+                ⭕️ شما تعداد ${ops} واحد فاکتور باز خرید دارید.`
+            avgNeeded = true
+        } else {
+            msg += `
+                ⭕️ فاکتور های خرید شما بسته شد `
+        }
+        if (avgNeeded) {
+            msg += `
+        
+            ⭕️ میانگین فاکتور خرید: ${helpers.toman(avg)}
+            
+            ⭕️ چناچه قیمت مظنه به : ${helpers.toman(bill.awkwardness.awk)} برسد 
+            
+             📣 فاکتور خرید شما به قیمت: ${helpers.toman(bill.awkwardness.sellprice)} حراج می شود. `
+        }
+
+        msg += `
+        
+        💶 موجودی شما برابر است با : ${helpers.toman(user.charge)}`
+        return msg
+
+    }
+
+
 
     const billToSring = async (bill, result) => {
+        let res
+        if (bill.isSell)
+            res = await sellerBillToString(bill, result)
+        else res = buyerBillToString(bill, result)
+        return res
+
         let {
             totalCommition,
             totalProfit,
@@ -232,10 +417,6 @@ module.exports = async (token) => {
         let avg = 0
         if (bill.isSell) avg = await helpers.sellAvg(bill.userId)
         else avg = await helpers.buyAvg(bill.userId)
-
-        if (isNaN(avg)) {
-            avg = bill.price
-        }
 
         let final = totalProfit - totalCommition
         let ft = ''
@@ -433,7 +614,11 @@ module.exports = async (token) => {
         sellerBill.awkwardness = await helpers.countAwkwardness(ctx, sellerBill)
         buyerBill.awkwardness = await helpers.countAwkwardness(ctx, buyerBill)
         sellerBill.left = selRes.amountLeft
+        sellerBill.commition = selRes.totalCommition
+        sellerBill.profit = selRes.totalProfit
         buyerBill.left = buyRes.amountLeft
+        buyerBill.profit = buyRes.totalProfit
+        buyerBill.commition = buyRes.totalCommition
         sellerBill = await sellerBill.save()
         buyerBill = await buyerBill.save()
 

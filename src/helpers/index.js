@@ -173,8 +173,8 @@ module.exports = {
             let sum = 0
             let am = 0
             await asyncForEach(mgs, mg => {
-                sum += mg.price * mgs.left //don't forget to add the base
-                am += mgs.left
+                sum += mg.price * mg.left //don't forget to add the base
+                am += mg.left
             })
             avg = sum / am
         }
@@ -192,8 +192,8 @@ module.exports = {
             let sum = 0
             let am = 0
             await asyncForEach(mgs, mg => {
-                sum += mg.price * mgs.left //don't forget to add the base
-                am += mgs.left
+                sum += mg.price * mg.left //don't forget to add the base
+                am += mg.left
             })
             avg = sum / am
         }
