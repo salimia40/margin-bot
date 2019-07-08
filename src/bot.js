@@ -46,7 +46,7 @@ module.exports = async (token) => {
             if (helpers.isPrivate(ctx)) {
 
                 if (ctx.user.stage == 'justJoined') {
-                    ctx.reply('به ربات يلای آبشده خوش آمدید')
+                    ctx.reply('به ربات طلای آبشده خوش آمدید')
                     next()
                 } else if (ctx.user.stage != 'completed') {
                     next()
@@ -124,6 +124,7 @@ module.exports = async (token) => {
             userId: b.userId,
             closed: true,
             expired: false,
+            isSell: !b.isSell,
             left: {
                 $gt: 0
             }
@@ -132,7 +133,6 @@ module.exports = async (token) => {
         let billsRemained = 0
         let commition = await ctx.setting.getCommition()
 
-        console.log(commition)
         await helpers.asyncForEach(bills, async bill => {
             if (am > 0) {
                 if (bill.left > am) {
@@ -157,22 +157,27 @@ module.exports = async (token) => {
                     bill = await bill.save()
 
                     let sum = 0
-                    console.log(sum)
-                    console.log(bill.sells)
                     await helpers.asyncForEach(bill.sells, (sell) => {
+                        console.log(sell)
+                        console.log(bill.price)
+                        let x
+                        console.log(x)
+                        console.log(bill.isSell)
                         if (bill.isSell) {
-                            sum += (bills.price - sell.price) * sell.amount
+                            x = bill.price - sell.price
                         } else {
-                            sum += (sell.price - bill.price) * sell.amount
+                            x = sell.price - bill.price
                         }
+                        console.log(x)
+                        x *= sell.amount
+                        console.log(x)
+                        sum += x
                         console.log(sum)
                     })
-                    console.log(sum)
                     sum *= 100
                     console.log(sum)
                     sum /= 4.3318
                     console.log(sum)
-                    console.info('profit')
                     if (!isNaN(sum))
                         bill.profit = sum
                     bill.commition = bill.amount * commition

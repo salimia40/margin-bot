@@ -3,11 +3,13 @@ services:
   bot:
     container_name: margin-bot
     restart: always
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017/isawyou
     build: .
     links:
-      - db
-  db:
-    container_name: mongo
+      - mongodb
+  mongodb:
+    container_name: mongodb
     image: mongo
     ports:
       - '27017:27017'

@@ -2,6 +2,7 @@ const config = require('../config')
 const {keys} = config
 const helpers = require('../helpers')
 const Scene = require('telegraf/scenes/base')
+const Markup = require('telegraf/markup')
 const {
     leave
 } = require('telegraf/stage')
@@ -107,7 +108,7 @@ singnupScene.action("terms-declined", (ctx) => {
 
 singnupScene.enter(async (ctx) => {
     if (ctx.user.name == undefined) {
-        ctx.reply("لطفا نام خود را وارد کنید")
+        ctx.reply("لطفا نام و نام خانوادگی خود را وارد کنید")
         ctx.user.stage = 'nameAsked'
         await ctx.user.save()
     }
