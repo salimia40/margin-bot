@@ -219,7 +219,7 @@ module.exports = async (token) => {
         })
 
 
-        let sopfs = await Bill.countDocuments({
+        let sopfs = await Bill.find({
             userId: bill.userId,
             left: {
                 $gt: 0
@@ -227,7 +227,7 @@ module.exports = async (token) => {
             isSell: true
         })
 
-        let bopfs = await Bill.countDocuments({
+        let bopfs = await Bill.find({
             userId: bill.userId,
             left: {
                 $gt: 0
@@ -246,11 +246,11 @@ module.exports = async (token) => {
             ft = 'سود'
 
         let msg = `
-            👤 معامله گر گرامی ${user.name}
+👤 معامله گر گرامی ${user.name}
             
-            مقدار 🔴 فروش  : ${bill.amount} واحد به قیمت : ${helpers.toman(bill.price)}
+مقدار 🔴 فروش  : ${bill.amount} واحد به قیمت : ${helpers.toman(bill.price)}
             
-            📈 سود یا ضرر شما: ${helpers.toman(final)+ ' ' + ft}`
+📈 سود یا ضرر شما: ${helpers.toman(final)+ ' ' + ft}`
 
         let avgNeeded = false
         let ops = 0
@@ -259,31 +259,36 @@ module.exports = async (token) => {
                 ops += v.left
             })
             msg += `
-                    ⭕️ شما تعداد ${ops} واحد فاکتور باز خرید دارید.`
-        } else if (bopfs.length > 0) {
+
+⭕️ شما تعداد ${ops} واحد فاکتور باز خرید دارید.`
+        } else if (sopfs.length > 0) {
             sopfs.forEach(v => {
                 ops += v.left
             })
             msg += `
-                    ⭕️ شما تعداد ${ops} واحد فاکتور باز فروش دارید.`
+
+⭕️ شما تعداد ${ops} واحد فاکتور باز فروش دارید.`
             avgNeeded = true
-        } else {
+        } else  {
             msg += `
-                    ⭕️ فاکتور های فروش شما بسته شد `
+
+⭕️ معاملات شما بسته شد و در حال حاضر فاکتور بازی ندارید`
+        // } else {
+            // avgNeeded = true
         }
         if (avgNeeded) {
             msg += `
             
-                ⭕️ میانگین فاکتور فروش: ${helpers.toman(avg)}
+⭕️ میانگین فاکتور فروش: ${helpers.toman(avg)}
                 
-                ⭕️ چناچه قیمت مظنه به : ${helpers.toman(bill.awkwardness.awk)} برسد 
+⭕️ چناچه قیمت مظنه به : ${helpers.toman(bill.awkwardness.awk)} برسد 
                 
-                 📣 فاکتور فروش شما به قیمت: ${helpers.toman(bill.awkwardness.sellprice)} حراج می شود. `
+📣 فاکتور فروش شما به قیمت: ${helpers.toman(bill.awkwardness.sellprice)} حراج می شود. `
         }
 
         msg += `
-            
-            💶 موجودی شما برابر است با : ${helpers.toman(user.charge)}`
+        
+💶 موجودی شما برابر است با : ${helpers.toman(user.charge)}`
         return msg
 
 
@@ -335,11 +340,11 @@ module.exports = async (token) => {
 
 
         let msg = `
-            👤 معامله گر گرامی ${user.name}
+👤 معامله گر گرامی ${user.name}
             
-            مقدار 🔵 خرید  : ${bill.amount} واحد به قیمت : ${helpers.toman(bill.price)}
+مقدار 🔵 خرید  : ${bill.amount} واحد به قیمت : ${helpers.toman(bill.price)}
             
-            📈 سود یا ضرر شما: ${helpers.toman(final)+ ' ' + ft}`
+📈 سود یا ضرر شما: ${helpers.toman(final)+ ' ' + ft}`
 
         let avgNeeded = false
         let ops = 0
@@ -348,26 +353,31 @@ module.exports = async (token) => {
                 ops += v.left
             })
             msg += `
-                ⭕️ شما تعداد ${ops} واحد فاکتور باز فروش دارید.`
+
+⭕️ شما تعداد ${ops} واحد فاکتور باز فروش دارید.`
         } else if (bopfs.length > 0) {
             bopfs.forEach(v => {
                 ops += v.left
             })
             msg += `
-                ⭕️ شما تعداد ${ops} واحد فاکتور باز خرید دارید.`
+
+⭕️ شما تعداد ${ops} واحد فاکتور باز خرید دارید.`
             avgNeeded = true
         } else {
             msg += `
-                ⭕️ فاکتور های خرید شما بسته شد `
+
+⭕️ معاملات شما بسته شد و در حال حاضر فاکتور بازی ندارید`
+        // } else {
+        //     avgNeeded = true
         }
         if (avgNeeded) {
             msg += `
         
-            ⭕️ میانگین فاکتور خرید: ${helpers.toman(avg)}
+⭕️ میانگین فاکتور خرید: ${helpers.toman(avg)}
             
-            ⭕️ چناچه قیمت مظنه به : ${helpers.toman(bill.awkwardness.awk)} برسد 
+⭕️ چناچه قیمت مظنه به : ${helpers.toman(bill.awkwardness.awk)} برسد 
             
-             📣 فاکتور خرید شما به قیمت: ${helpers.toman(bill.awkwardness.sellprice)} حراج می شود. `
+📣 فاکتور خرید شما به قیمت: ${helpers.toman(bill.awkwardness.sellprice)} حراج می شود. `
         }
 
         msg += `
@@ -577,7 +587,7 @@ module.exports = async (token) => {
                 let usr = await User.findOne({
                     userId: bill.userId
                 })
-                let msg = emo + ' ' + bill.amount + ' ' + z + ' ' + price + ' ' + usr.name
+                let msg =  emo + ' ' + bill.amount + ' ' + z + ' ' + price + ' ' + usr.name
                 ctx.telegram.editMessageText(ctx.chat.id, bill.messageId, null, msg)
 
             }
@@ -593,9 +603,6 @@ module.exports = async (token) => {
                 price: price
             })
         }
-
-
-
 
         /***
          * 
@@ -672,13 +679,13 @@ module.exports = async (token) => {
 
         res = ''
 
-        res += `\n شماره رسید: ${bill.code}`
         if (bill.closed) {
-            res += `\n 🔴فروشنده: ${seller}`
-            res += `\n 🔵خریدار: ${buser.name}`
+            res += `\n 🔵 خریدار: ${buser.name}`
+            res += `\n 🔴 فروشنده: ${seller}`
         }
         res += `\n مقدار: ${bill.amount}`
-        res += `\n قیمت: ${helpers.toman(bill.price)} تومان`
+        res += ` قیمت: ${helpers.toman(bill.price)} تومان`
+        res += `\n شماره رسید: ${bill.code}`
         return res
     }
 

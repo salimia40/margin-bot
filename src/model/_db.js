@@ -1,7 +1,7 @@
 module.exports = db = (() => {
     const mongoose = require('mongoose')
     const config = require('../config')
-    mongoose.connect('mongodb://mongodb:27017/isawyou', {
+    mongoose.connect(config.db_url, {
         useNewUrlParser: true,
         useCreateIndex: true,
         authSource: 'admin',
