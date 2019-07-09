@@ -1,10 +1,12 @@
 const templates = require('./templates')
+console.log(process.env.TOKEN)
 module.exports = {
     templates,
-    token : '837589296:AAEIvsMmiH94_eZhy1_t3I3my2cvjOsu3iI',
-    tapp_token : '882220621:AAEbh2pgLrq99WDKn35d7eSvymMLW1eGysM',
-    db_url : 'mongodb://root:VyD4h5LcmaYfpPCc69muIuFy@s7.liara.ir:30770/mrbottest',
-    // db_url : process.env.MONGO_URI,
+    // token : '837589296:AAEIvsMmiH94_eZhy1_t3I3my2cvjOsu3iI',
+    token: process.env.TOKEN,
+    // tapp_token : '882220621:AAEbh2pgLrq99WDKn35d7eSvymMLW1eGysM',
+    // db_url : 'mongodb://root:VyD4h5LcmaYfpPCc69muIuFy@s7.liara.ir:30770/mrbottest',
+    db_url : process.env.MONGO_URI,
     keys : {
         openfacts: '📜 فاکتور های باز',
         monthlyReport: '🌙 گزارش ماهانه',
